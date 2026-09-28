@@ -134,16 +134,32 @@ app.Run();
 // "Trust Server Certificate=true" rather than validating against a CA.
 static string ConvertDatabaseUrlToNpgsqlConnectionString(string databaseUrl)
 {
+    var trimmed = databaseUrl.Trim();
+
+    // Render's dashboard sometimes renders this value without the "//" after
+    // the scheme (e.g. "postgres:user:pass@host/db"). System.Uri treats a
+    // scheme with no "//" as opaque (like "mailto:") and parses it with an
+    // empty host and no user info at all rather than failing - normalizing
+    // it to a proper "scheme://" URI first is what actually fixed this.
+    if (!trimmed.Contains("://", StringComparison.Ordinal))
+    {
+        var schemeSeparator = trimmed.IndexOf(':');
+        if (schemeSeparator > 0)
+        {
+            trimmed = trimmed[..schemeSeparator] + "://" + trimmed[(schemeSeparator + 1)..];
+        }
+    }
+
     Uri uri;
     try
     {
-        uri = new Uri(databaseUrl.Trim());
+        uri = new Uri(trimmed);
     }
     catch (UriFormatException ex)
     {
         throw new InvalidOperationException(
             $"DATABASE_URL isn't a valid URI (expected postgres://user:password@host:port/database). " +
-            $"Got {databaseUrl.Length} character(s), starting with '{Left(databaseUrl, 12)}'.", ex);
+            $"Got {trimmed.Length} character(s), starting with '{Left(trimmed, 12)}'.", ex);
     }
 
     // An opaque/malformed URI (e.g. missing the "//" after the scheme) parses
