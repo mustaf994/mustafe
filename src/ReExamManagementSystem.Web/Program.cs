@@ -130,7 +130,8 @@ app.Run();
 
 // postgres://user:password@host:port/database -> Npgsql's Host=...;Port=...;... form.
 // Render's managed Postgres requires SSL for connections from outside its private
-// network, and its certificates aren't in the container's trust store, hence
+// network, while the internal URL may not offer it - "Prefer" uses SSL when the
+// server supports it. Its certificates aren't in the container's trust store, hence
 // "Trust Server Certificate=true" rather than validating against a CA.
 static string ConvertDatabaseUrlToNpgsqlConnectionString(string databaseUrl)
 {
@@ -179,7 +180,7 @@ static string ConvertDatabaseUrlToNpgsqlConnectionString(string databaseUrl)
     var password = Uri.UnescapeDataString(userInfo[1]);
 
     return $"Host={uri.Host};Port={port};Database={database};Username={username};Password={password};" +
-        "SSL Mode=Require;Trust Server Certificate=true";
+        "SSL Mode=Prefer;Trust Server Certificate=true";
 }
 
 static string Left(string value, int count) => value.Length <= count ? value : value[..count];
