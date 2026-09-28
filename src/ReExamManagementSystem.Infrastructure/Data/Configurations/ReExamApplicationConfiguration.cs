@@ -15,11 +15,11 @@ public class ReExamApplicationConfiguration : IEntityTypeConfiguration<ReExamApp
         // Pending (1), Approved (2) and Completed (5) so a student can re-apply after
         // Rejected (3) or Cancelled (4), matching ReExamApplicationService.SubmitAsync's
         // duplicate check - an unfiltered index previously threw on that legitimate
-        // re-apply. SQL Server filtered index predicates don't support NOT/NOT IN, so
-        // this lists the allowed statuses rather than excluding the other two.
+        // re-apply. Postgres partial-index predicates need double-quoted identifiers
+        // (unquoted would be folded to lowercase and fail to match the column).
         builder.HasIndex(a => new { a.StudentId, a.CourseId, a.AcademicYearId, a.SemesterId })
             .IsUnique()
-            .HasFilter("[Status] IN (1, 2, 5)");
+            .HasFilter("\"Status\" IN (1, 2, 5)");
 
         builder.HasOne(a => a.Student)
             .WithMany(s => s.ReExamApplications)

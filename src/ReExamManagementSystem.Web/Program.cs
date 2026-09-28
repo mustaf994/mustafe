@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using ReExamManagementSystem.Application;
 using ReExamManagementSystem.Application.Common;
@@ -6,6 +7,23 @@ using ReExamManagementSystem.Infrastructure.Data.Seed;
 using ReExamManagementSystem.Infrastructure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Render (and most other PaaS hosts) hand the database connection as a single
+// postgres:// URI in DATABASE_URL rather than the ConnectionStrings__DefaultConnection
+// key/value format Npgsql expects, so translate it here before it's read below.
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    builder.Configuration["ConnectionStrings:DefaultConnection"] = ConvertDatabaseUrlToNpgsqlConnectionString(databaseUrl);
+}
+
+// Render assigns the container a port at runtime via PORT and routes its own
+// HTTPS edge to it over plain HTTP - Kestrel must bind to that exact port.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
 
 // Layered composition: each layer exposes its own AddXServices() extension
 // so Program.cs stays a thin wiring point instead of a dumping ground.
@@ -84,6 +102,14 @@ else
 // framework default status pages are not something end users should see.
 app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
 
+// Behind Render's (or any reverse proxy's) TLS-terminating edge, the request
+// that reaches Kestrel is plain HTTP - without this, UseHttpsRedirection below
+// would see it as insecure and redirect again, producing a loop.
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -101,3 +127,20 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// postgres://user:password@host:port/database -> Npgsql's Host=...;Port=...;... form.
+// Render's managed Postgres requires SSL for connections from outside its private
+// network, and its certificates aren't in the container's trust store, hence
+// "Trust Server Certificate=true" rather than validating against a CA.
+static string ConvertDatabaseUrlToNpgsqlConnectionString(string databaseUrl)
+{
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var database = uri.AbsolutePath.TrimStart('/');
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = Uri.UnescapeDataString(userInfo[1]);
+
+    return $"Host={uri.Host};Port={port};Database={database};Username={username};Password={password};" +
+        "SSL Mode=Require;Trust Server Certificate=true";
+}

@@ -7,7 +7,7 @@ A Web-Based System for Managing University Re-Examination Applications, Scheduli
 ## Technology Stack
 
 - ASP.NET Core 9 MVC / C#
-- Entity Framework Core 9 (Code First) + Microsoft SQL Server
+- Entity Framework Core 9 (Code First) + PostgreSQL (Npgsql)
 - ASP.NET Core Identity (custom `ApplicationUser` / `ApplicationRole`)
 - Bootstrap 5, Bootstrap Icons, Chart.js
 - FluentValidation
@@ -38,7 +38,7 @@ Each layer only depends on the layer(s) inside it (`Web → Application/Infrastr
 ### Prerequisites
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
-- SQL Server (LocalDB, Express, or full SQL Server). LocalDB connection string is the default in `appsettings.json`.
+- PostgreSQL (local install, or a container - `docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres`).
 
 ### Configure the database connection
 
@@ -46,11 +46,9 @@ Each layer only depends on the layer(s) inside it (`Web → Application/Infrastr
 
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=ReExamManagementSystemDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+  "DefaultConnection": "Host=localhost;Database=ReExamManagementSystemDb;Username=postgres;Password=postgres"
 }
 ```
-
-If you're on LocalDB instead of a full SQL Server instance, use `Server=(localdb)\\mssqllocaldb;...` instead.
 
 Override this per-environment in `appsettings.Development.json` or via user secrets / environment variables — never commit real credentials.
 
@@ -130,16 +128,16 @@ Every phase above was also manually exercised end-to-end against a real SQL Serv
 
 ## Deployment Guide
 
-1. **Configuration** — never ship real secrets in `appsettings.json`. Set the following via environment variables, an Azure App Service/Key Vault configuration, or `dotnet user-secrets` in development:
-   - `ConnectionStrings__DefaultConnection` — production SQL Server connection string.
+1. **Configuration** — never ship real secrets in `appsettings.json`. Set the following via environment variables, a cloud platform's secret/config store, or `dotnet user-secrets` in development:
+   - `ConnectionStrings__DefaultConnection` — production PostgreSQL connection string.
    - `Smtp__Host`, `Smtp__Port`, `Smtp__Username`, `Smtp__Password`, `Smtp__FromEmail` — without these, password-reset and notification emails are logged instead of sent (safe for a demo, not for production).
 2. **Publish**
    ```bash
    dotnet publish src/ReExamManagementSystem.Web -c Release -o ./publish
    ```
 3. **Database** — run `dotnet ef database update` against the production connection string before first boot, or let the app apply migrations automatically on startup (current default) if that's acceptable for your deployment process.
-4. **HTTPS** — the app calls `UseHttpsRedirection()` and `UseHsts()` outside Development; put it behind a reverse proxy (IIS, Nginx, or a cloud load balancer) that terminates TLS, or configure Kestrel with a certificate directly.
-5. **Hosting** — the published output is a standard ASP.NET Core app: deploy it to IIS (with the ASP.NET Core Hosting Bundle installed), a Linux host behind Nginx with systemd, a container (add a `Dockerfile` targeting `mcr.microsoft.com/dotnet/aspnet:9.0`), or Azure App Service.
+4. **HTTPS** — the app calls `UseHttpsRedirection()` and `UseHsts()` outside Development, and `UseForwardedHeaders()` so `Request.Scheme` resolves correctly when a reverse proxy (Render, IIS, Nginx, a cloud load balancer) terminates TLS in front of it.
+5. **Hosting** — a `Dockerfile` (multi-stage build on `mcr.microsoft.com/dotnet/aspnet:9.0`) and a `render.yaml` Blueprint (web service + managed PostgreSQL) are included at the repo root for deploying to [Render](https://render.com); the same image works on any container host (Azure App Service, a Linux host with systemd, etc.). `Program.cs` also accepts a `DATABASE_URL` (`postgres://user:pass@host:port/db`) env var, translating it to the Npgsql connection-string format automatically — the format Render (and most PaaS platforms) provide for a managed database.
 6. **First run** — the seeded administrator account (`admin@reexam.edu` / `Passw0rd!123`) exists in every environment the seeder runs against. **Change or remove it before exposing a real deployment to the internet.**
 
 ## Development Order
