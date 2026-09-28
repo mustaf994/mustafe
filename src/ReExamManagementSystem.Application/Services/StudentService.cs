@@ -237,6 +237,20 @@ public class StudentService : IStudentService
         if (student is null) return ServiceResult.Failure("Student not found.");
 
         var userId = student.UserId;
+
+        // Deleting a student removes everything that belongs only to them, children
+        // before parents since every relationship is Restrict. A single SaveChanges
+        // keeps it all-or-nothing.
+        _unitOfWork.Repository<ReExamResult>().RemoveRange(
+            await _unitOfWork.Repository<ReExamResult>().FindAsync(r => r.StudentId == id, cancellationToken));
+        _unitOfWork.Repository<ExamAttendance>().RemoveRange(
+            await _unitOfWork.Repository<ExamAttendance>().FindAsync(a => a.StudentId == id, cancellationToken));
+        _unitOfWork.Repository<ReExamApplication>().RemoveRange(
+            await _unitOfWork.Repository<ReExamApplication>().FindAsync(a => a.StudentId == id, cancellationToken));
+        _unitOfWork.Repository<ReExamEligibility>().RemoveRange(
+            await _unitOfWork.Repository<ReExamEligibility>().FindAsync(e => e.StudentId == id, cancellationToken));
+        _unitOfWork.Repository<StudentResult>().RemoveRange(
+            await _unitOfWork.Repository<StudentResult>().FindAsync(r => r.StudentId == id, cancellationToken));
         _unitOfWork.Repository<Student>().Remove(student);
 
         try
@@ -245,7 +259,7 @@ public class StudentService : IStudentService
         }
         catch (DbUpdateException)
         {
-            return ServiceResult.Failure("This student has academic results, applications or exam records and cannot be deleted.");
+            return ServiceResult.Failure("This student could not be deleted because other records still depend on it.");
         }
 
         await _userAccountService.DeleteUserAsync(userId, cancellationToken);
