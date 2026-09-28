@@ -1,0 +1,90 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Sign In";
+    Layout = "_AuthLayout";
+}
+
+<div class="row g-0 auth-shell">
+    <div class="col-md-5 col-lg-4 auth-brand-panel d-flex flex-column">
+        <div class="my-auto">
+            <div class="logo-circle mb-4">
+                <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <h2 class="fw-bold mb-2">Re-Exam Management<br />System</h2>
+            <p class="text-white-50 mb-4">University Re-Examination Management, Made Simple</p>
+
+            <ul class="list-unstyled feature-list">
+                <li><i class="bi bi-file-earmark-text"></i> Manage Applications</li>
+                <li><i class="bi bi-calendar-event"></i> Schedule Examinations</li>
+                <li><i class="bi bi-award"></i> Track Results</li>
+                <li><i class="bi bi-file-earmark-bar-graph"></i> Generate Reports</li>
+            </ul>
+        </div>
+        <p class="text-white-50 small mb-0">&copy; @DateTime.Now.Year University Re-Exam Management System</p>
+    </div>
+
+    <div class="col-md-7 col-lg-8 auth-form-panel d-flex align-items-center justify-content-center">
+        <div class="auth-form-inner">
+            <h3 class="fw-bold mb-1">Welcome Back</h3>
+            <p class="text-muted mb-4">Sign in to your account</p>
+
+            <form asp-controller="Account" asp-action="Login" method="post">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <div class="input-group auth-input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Email" class="form-control" autocomplete="username" autofocus />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <div class="input-group auth-input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Password" id="passwordInput" class="form-control" autocomplete="current-password" />
+                        <button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword" tabindex="-1">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+                    <a asp-controller="Account" asp-action="ForgotPassword" class="small">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    Login
+                </button>
+
+                <div class="auth-divider">OR</div>
+
+                <a asp-controller="Account" asp-action="ForgotPassword" class="btn btn-outline-secondary w-100 py-2">
+                    Reset Password
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('togglePassword')?.addEventListener('click', function () {
+            var input = document.getElementById('passwordInput');
+            var icon = document.getElementById('togglePasswordIcon');
+            var isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.classList.toggle('bi-eye', !isHidden);
+            icon.classList.toggle('bi-eye-slash', isHidden);
+        });
+    </script>
+}

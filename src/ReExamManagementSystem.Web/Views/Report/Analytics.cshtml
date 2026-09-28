@@ -1,0 +1,83 @@
+@using System.Text.Json
+@model AnalyticsViewModel
+@{
+    ViewData["Title"] = "Analytics";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-graph-up"></i> Analytics</h4>
+    <a asp-controller="Report" asp-action="Index" class="btn btn-outline-secondary">Reports</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Applications by Status</div>
+            <div class="card-body"><canvas id="appStatusChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Pass vs Fail Rate</div>
+            <div class="card-body"><canvas id="passFailChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Results by Grade</div>
+            <div class="card-body"><canvas id="gradeChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Most Repeated Courses (Re-Exam)</div>
+            <div class="card-body"><canvas id="repeatedCoursesChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Students by Program</div>
+            <div class="card-body"><canvas id="studentsByProgramChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Applications by Academic Year</div>
+            <div class="card-body"><canvas id="appsByYearChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chart.js/dist/chart.umd.min.js"></script>
+    <script>
+        function buildChart(id, type, points, colors) {
+            new Chart(document.getElementById(id), {
+                type: type,
+                data: {
+                    labels: points.map(p => p.Label),
+                    datasets: [{
+                        label: id,
+                        data: points.map(p => p.Value),
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: type === 'pie' || type === 'doughnut' } },
+                    scales: (type === 'bar') ? { y: { beginAtZero: true, ticks: { precision: 0 } } } : undefined
+                }
+            });
+        }
+
+        var palette = ['#0d6efd', '#20c997', '#ffc107', '#fd7e14', '#6f42c1', '#dc3545', '#0dcaf0', '#6610f2'];
+
+        buildChart('appStatusChart', 'pie', @Html.Raw(JsonSerializer.Serialize(Model.ApplicationsByStatus)), palette);
+        buildChart('passFailChart', 'pie', @Html.Raw(JsonSerializer.Serialize(Model.PassVsFail)), ['#198754', '#dc3545']);
+        buildChart('gradeChart', 'bar', @Html.Raw(JsonSerializer.Serialize(Model.ResultsByGrade)), '#0d6efd');
+        buildChart('repeatedCoursesChart', 'bar', @Html.Raw(JsonSerializer.Serialize(Model.MostRepeatedCourses)), '#fd7e14');
+        buildChart('studentsByProgramChart', 'doughnut', @Html.Raw(JsonSerializer.Serialize(Model.StudentsByProgram)), palette);
+        buildChart('appsByYearChart', 'bar', @Html.Raw(JsonSerializer.Serialize(Model.ApplicationsByAcademicYear)), '#20c997');
+    </script>
+}

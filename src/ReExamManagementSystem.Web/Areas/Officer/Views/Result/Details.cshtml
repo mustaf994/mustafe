@@ -1,0 +1,83 @@
+@model ResultDetailsViewModel
+@{
+    ViewData["Title"] = "Result Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-award"></i> Result Details</h4>
+    <a asp-action="Review" class="btn btn-outline-secondary">Back</a>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Student</dt>
+                    <dd class="col-sm-8">@Model.StudentName (@Model.StudentNumber)</dd>
+                    <dt class="col-sm-4">Course</dt>
+                    <dd class="col-sm-8"><span class="badge text-bg-secondary">@Model.CourseCode</span> @Model.CourseName</dd>
+                    <dt class="col-sm-4">Original Mark</dt>
+                    <dd class="col-sm-8">@Model.OriginalMark</dd>
+                    <dt class="col-sm-4">Re-Exam Mark</dt>
+                    <dd class="col-sm-8">@Model.ReExamMark</dd>
+                    <dt class="col-sm-4">Final Mark</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.FinalMark</dd>
+                    <dt class="col-sm-4">Grade</dt>
+                    <dd class="col-sm-8">@Model.Grade (@Model.GradePoint)</dd>
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">@Model.Status</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">Workflow</div>
+            <div class="card-body">
+                <p>
+                    <i class="bi @(Model.IsVerified ? "bi-check-circle-fill text-success" : "bi-circle text-muted")"></i>
+                    Verified
+                    @if (Model.IsVerified)
+                    {
+                        <span class="text-muted small">on @Model.VerifiedAt?.ToString("dd MMM yyyy")</span>
+                    }
+                </p>
+                <p>
+                    <i class="bi @(Model.IsPublished ? "bi-check-circle-fill text-success" : "bi-circle text-muted")"></i>
+                    Published
+                    @if (Model.IsPublished)
+                    {
+                        <span class="text-muted small">on @Model.PublishedAt?.ToString("dd MMM yyyy")</span>
+                    }
+                </p>
+
+                <div class="d-grid gap-2 mt-3">
+                    @if (!Model.IsVerified)
+                    {
+                        <form asp-action="Verify" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="bi bi-patch-check"></i> Verify Result
+                            </button>
+                        </form>
+                    }
+                    else if (!Model.IsPublished)
+                    {
+                        <form asp-action="Publish" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-megaphone"></i> Publish Result
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">This result has been published and is visible to the student.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

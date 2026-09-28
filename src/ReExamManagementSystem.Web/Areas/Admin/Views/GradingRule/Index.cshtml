@@ -1,0 +1,65 @@
+@model IReadOnlyList<GradingRuleFormViewModel>
+@{
+    ViewData["Title"] = "Grading Rules";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-sliders"></i> Grading Rules</h4>
+    <button type="button" class="btn btn-primary" data-crud-url="@Url.Action("Create")">
+        <i class="bi bi-plus-lg"></i> Add Grading Rule
+    </button>
+</div>
+
+<p class="text-muted">These bands drive every grade calculation in the system — no pass mark or letter grade is hard-coded anywhere else.</p>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Mark Range</th>
+                    <th>Grade</th>
+                    <th>Grade Point</th>
+                    <th>Passing</th>
+                    <th>Description</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">No grading rules configured yet.</td></tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.MinMark - @item.MaxMark</td>
+                        <td><span class="badge text-bg-secondary">@item.Grade</span></td>
+                        <td>@item.GradePoint</td>
+                        <td>
+                            @if (item.IsPassing)
+                            {
+                                <span class="badge text-bg-success">Pass</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-danger">Fail</span>
+                            }
+                        </td>
+                        <td class="small text-muted">@item.Description</td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-crud-url="@Url.Action("Edit", new { id = item.Id })">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    data-delete-url="@Url.Action("Delete", new { id = item.Id })"
+                                    data-delete-name="@item.Grade">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

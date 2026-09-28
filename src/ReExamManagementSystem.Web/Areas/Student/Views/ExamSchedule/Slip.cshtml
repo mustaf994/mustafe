@@ -1,0 +1,65 @@
+@model ExamSlipViewModel
+@{
+    ViewData["Title"] = "Examination Slip";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Examination Slip</h4>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+        <a asp-action="SlipPdf" asp-route-scheduleId="@Model.ScheduleId" class="btn btn-outline-danger">
+            <i class="bi bi-file-earmark-pdf"></i> Download PDF
+        </a>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm mx-auto" style="max-width: 560px;">
+    <div class="card-body p-4">
+        <div class="text-center mb-3">
+            <i class="bi bi-mortarboard-fill text-primary" style="font-size: 2rem;"></i>
+            <h5 class="mt-2 mb-0">RE-EXAM MANAGEMENT SYSTEM</h5>
+            <p class="text-muted mb-0">University Examination Slip</p>
+        </div>
+        <hr />
+
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Student Number</dt>
+            <dd class="col-sm-8">@Model.StudentNumber</dd>
+            <dt class="col-sm-4">Student Name</dt>
+            <dd class="col-sm-8">@Model.StudentName</dd>
+            <dt class="col-sm-4">Department</dt>
+            <dd class="col-sm-8">@Model.DepartmentName</dd>
+            <dt class="col-sm-4">Program</dt>
+            <dd class="col-sm-8">@Model.ProgramName</dd>
+        </dl>
+
+        <hr />
+
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Course Code</dt>
+            <dd class="col-sm-8"><span class="badge text-bg-secondary">@Model.CourseCode</span></dd>
+            <dt class="col-sm-4">Course Name</dt>
+            <dd class="col-sm-8">@Model.CourseName</dd>
+            <dt class="col-sm-4">Exam Date</dt>
+            <dd class="col-sm-8">@Model.ExamDate.ToString("dddd, dd MMMM yyyy")</dd>
+            <dt class="col-sm-4">Exam Time</dt>
+            <dd class="col-sm-8">@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</dd>
+            <dt class="col-sm-4">Exam Room</dt>
+            <dd class="col-sm-8">@Model.RoomLabel</dd>
+        </dl>
+
+        <div class="bg-light rounded p-3 mt-3">
+            <p class="fw-semibold mb-1">Examination Instructions</p>
+            <ul class="small text-muted mb-0 ps-3">
+                <li>Arrive at the examination room at least 15 minutes before the start time.</li>
+                <li>Bring this slip and a valid student ID card. No admission without both.</li>
+                <li>Mobile phones and unauthorized materials are not permitted in the examination room.</li>
+            </ul>
+        </div>
+
+        <p class="text-center text-muted small mt-3 mb-0">Reference: @Model.ReferenceNumber</p>
+    </div>
+</div>

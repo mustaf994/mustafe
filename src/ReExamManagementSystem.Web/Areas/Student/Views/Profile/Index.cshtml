@@ -1,0 +1,95 @@
+@model StudentDetailsViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<h4 class="mb-4"><i class="bi bi-person-badge"></i> My Academic Profile</h4>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Student Number</dt>
+            <dd class="col-sm-8">@Model.StudentNumber</dd>
+
+            <dt class="col-sm-4">Full Name</dt>
+            <dd class="col-sm-8">@Model.FullName</dd>
+
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
+
+            <dt class="col-sm-4">Phone</dt>
+            <dd class="col-sm-8">@(Model.PhoneNumber ?? "-")</dd>
+
+            <dt class="col-sm-4">Department</dt>
+            <dd class="col-sm-8">@Model.DepartmentName</dd>
+
+            <dt class="col-sm-4">Program</dt>
+            <dd class="col-sm-8">@Model.ProgramName (Level @Model.Level)</dd>
+
+            <dt class="col-sm-4">Academic Year / Semester</dt>
+            <dd class="col-sm-8">@Model.AcademicYearName - @Model.SemesterName</dd>
+
+            <dt class="col-sm-4">Enrollment Date</dt>
+            <dd class="col-sm-8">@Model.EnrollmentDate.ToString("dd MMM yyyy")</dd>
+
+            <dt class="col-sm-4">Status</dt>
+            <dd class="col-sm-8">
+                @{
+                    var badgeClass = Model.Status switch
+                    {
+                        StudentStatus.Active => "text-bg-success",
+                        StudentStatus.Graduated => "text-bg-primary",
+                        StudentStatus.Suspended => "text-bg-warning",
+                        _ => "text-bg-secondary"
+                    };
+                }
+                <span class="badge @badgeClass">@Model.Status</span>
+            </dd>
+        </dl>
+    </div>
+    <div class="card-footer">
+        <a asp-area="" asp-controller="Account" asp-action="ChangePassword" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-key"></i> Change Password
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">Academic Result History</div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Academic Year</th>
+                    <th>Semester</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Results.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">No results recorded yet.</td></tr>
+                }
+                @foreach (var result in Model.Results)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-secondary">@result.CourseCode</span> @result.CourseName</td>
+                        <td>@result.AcademicYearName</td>
+                        <td>@result.SemesterName</td>
+                        <td>@result.Marks</td>
+                        <td>@result.Grade</td>
+                        <td>
+                            @{
+                                var resultBadge = result.Status == ResultStatus.Pass ? "text-bg-success" : "text-bg-danger";
+                            }
+                            <span class="badge @resultBadge">@result.Status</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

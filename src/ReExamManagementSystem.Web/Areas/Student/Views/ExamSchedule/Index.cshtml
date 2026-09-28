@@ -1,0 +1,42 @@
+@model IReadOnlyList<ScheduledExamViewModel>
+@{
+    ViewData["Title"] = "My Exam Schedule";
+}
+
+<h4 class="mb-4"><i class="bi bi-calendar-event"></i> My Exam Schedule</h4>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Room</th>
+                    <th class="text-end">Slip</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">No exams have been scheduled for you yet.</td></tr>
+                }
+                @foreach (var exam in Model)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-secondary">@exam.CourseCode</span> @exam.CourseName</td>
+                        <td>@exam.ExamDate.ToString("dd MMM yyyy")</td>
+                        <td>@exam.StartTime.ToString(@"hh\:mm") - @exam.EndTime.ToString(@"hh\:mm")</td>
+                        <td>@exam.RoomLabel</td>
+                        <td class="text-end">
+                            <a asp-action="Slip" asp-route-scheduleId="@exam.ScheduleId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-earmark-text"></i> View Slip
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

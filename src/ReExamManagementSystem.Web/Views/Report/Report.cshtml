@@ -1,0 +1,109 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model ReportData
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var actionName = ViewContext.RouteData.Values["action"] as string;
+    var query = Context.Request.QueryString.Value ?? string.Empty;
+    var currentStatus = Context.Request.Query["status"].ToString();
+    var currentPublished = Context.Request.Query["published"].ToString();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-file-earmark-bar-graph"></i> @Model.Title</h4>
+        <p class="text-muted mb-0">@Model.Rows.Count record(s)</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Report" asp-action="Index" class="btn btn-outline-secondary">Back</a>
+        <a href="@(Url.Action(actionName, "Report"))@(query.Contains('?') ? query + "&format=pdf" : "?format=pdf")" class="btn btn-outline-danger">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+        </a>
+        <a href="@(Url.Action(actionName, "Report"))@(query.Contains('?') ? query + "&format=excel" : "?format=excel")" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+    </div>
+</div>
+
+@if (actionName == "Applications")
+{
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-auto" style="min-width:200px;">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="" selected="@(currentStatus == "" ? "selected" : null)">All Statuses</option>
+                        @foreach (var value in Enum.GetValues<ApplicationStatus>())
+                        {
+                            <option value="@value" selected="@(currentStatus == value.ToString() ? "selected" : null)">@value</option>
+                        }
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+else if (actionName == "Results")
+{
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-auto" style="min-width:200px;">
+                    <select name="published" class="form-select" onchange="this.form.submit()">
+                        <option value="" selected="@(currentPublished == "" ? "selected" : null)">All</option>
+                        <option value="true" selected="@(currentPublished == "true" ? "selected" : null)">Published Only</option>
+                        <option value="false" selected="@(currentPublished == "false" ? "selected" : null)">Unpublished Only</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+else if (actionName == "StudentList")
+{
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-auto" style="min-width:200px;">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="" selected="@(currentStatus == "" ? "selected" : null)">All Statuses</option>
+                        @foreach (var value in Enum.GetValues<StudentStatus>())
+                        {
+                            <option value="@value" selected="@(currentStatus == value.ToString() ? "selected" : null)">@value</option>
+                        }
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    @foreach (var header in Model.Headers)
+                    {
+                        <th>@header</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Rows.Count == 0)
+                {
+                    <tr><td colspan="@Model.Headers.Count" class="text-center text-muted py-4">No records found.</td></tr>
+                }
+                @foreach (var row in Model.Rows)
+                {
+                    <tr>
+                        @foreach (var cell in row)
+                        {
+                            <td>@cell</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

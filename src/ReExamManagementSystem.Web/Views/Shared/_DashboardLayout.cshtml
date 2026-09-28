@@ -1,0 +1,134 @@
+@using Microsoft.AspNetCore.Identity
+@using ReExamManagementSystem.Infrastructure.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var currentUserRoles = currentUser is null ? new List<string>() : (await UserManager.GetRolesAsync(currentUser)).ToList();
+    var displayName = currentUser?.FullName ?? User.Identity?.Name ?? "User";
+    var displayRole = currentUserRoles.FirstOrDefault() switch
+    {
+        Roles.Administrator => "System Administrator",
+        Roles.ExaminationOfficer => "Examination Officer",
+        Roles.Student => "Student",
+        _ => ""
+    };
+    var initials = string.Concat(displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(p => char.ToUpperInvariant(p[0])));
+
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+    var (searchController, searchAction, searchPlaceholder) = currentArea switch
+    {
+        "Admin" => ("Student", "Index", "Search students..."),
+        "Officer" => ("Application", "Index", "Search applications..."),
+        _ => (null, null, null)
+    };
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Re-Exam Management System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="d-flex" id="app-shell">
+        <nav class="sidebar-col" id="sidebarCol">
+            <partial name="_Sidebar" />
+        </nav>
+
+        <div class="flex-grow-1 main-col">
+            <header class="topbar d-flex align-items-center justify-content-between px-3 gap-3">
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <button class="btn btn-outline-secondary d-lg-none" type="button" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h5 class="mb-0 d-none d-md-block text-nowrap">@ViewData["Title"]</h5>
+                    @if (searchController is not null)
+                    {
+                        <form asp-area="@currentArea" asp-controller="@searchController" asp-action="@searchAction" method="get" class="topbar-search d-none d-md-block flex-grow-1">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" name="search" class="form-control border-start-0" placeholder="@searchPlaceholder" />
+                            </div>
+                        </form>
+                    }
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    @await Component.InvokeAsync("NotificationBell")
+                    <a asp-area="" asp-controller="Account" asp-action="Manage" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+                        <div class="avatar-circle">@initials</div>
+                        <span class="d-none d-sm-block">
+                            <div class="small fw-semibold lh-1">@displayName</div>
+                            <div class="small text-muted lh-1">@displayRole</div>
+                        </span>
+                    </a>
+                </div>
+            </header>
+
+            <main class="p-3 p-md-4">
+                @if (TempData["StatusMessage"] is string status)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @status
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] is string errorMessage)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @errorMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    @* Shared modal shell used by every "Add / Edit" screen: JS injects a
+       server-rendered form partial into #crudModalContent and shows it. *@
+    <div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" id="crudModalContent"></div>
+        </div>
+    </div>
+
+    @* Shared delete-confirmation modal used by every "Delete" button. *@
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete <strong id="deleteModalItemName"></strong>? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteModalForm" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.getElementById('sidebarToggle')?.addEventListener('click', function () {
+            document.getElementById('sidebarCol').classList.toggle('sidebar-open');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

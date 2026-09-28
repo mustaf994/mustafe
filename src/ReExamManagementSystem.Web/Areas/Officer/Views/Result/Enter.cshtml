@@ -1,0 +1,39 @@
+@model ResultEntryFormViewModel
+@{
+    ViewData["Title"] = "Enter Re-Exam Marks";
+}
+
+<h4 class="mb-4"><i class="bi bi-pencil-square"></i> Enter Re-Exam Mark</h4>
+
+<div class="card shadow-sm" style="max-width: 600px;">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-4">Student</dt>
+            <dd class="col-sm-8">@Model.StudentName (@Model.StudentNumber)</dd>
+            <dt class="col-sm-4">Course</dt>
+            <dd class="col-sm-8"><span class="badge text-bg-secondary">@Model.CourseCode</span> @Model.CourseName</dd>
+            <dt class="col-sm-4">Original Mark</dt>
+            <dd class="col-sm-8">@Model.OriginalMark (@Model.OriginalGrade)</dd>
+        </dl>
+
+        <form asp-action="Enter" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ApplicationId" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="ReExamMark" class="form-label"></label>
+                <input asp-for="ReExamMark" type="number" step="0.01" min="0" max="100" class="form-control" autofocus />
+                <span asp-validation-for="ReExamMark" class="text-danger"></span>
+                <div class="form-text">The grade and pass/fail status are calculated automatically from the configured grading rules.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Mark</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

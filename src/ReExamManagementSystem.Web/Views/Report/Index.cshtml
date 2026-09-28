@@ -1,0 +1,96 @@
+@{
+    ViewData["Title"] = "Reports";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+
+    var categories = new (string Key, string Label)[]
+    {
+        ("student", "Student Reports"),
+        ("application", "Application Reports"),
+        ("examination", "Examination Reports"),
+        ("result", "Result Reports"),
+        ("statistical", "Statistical Reports"),
+    };
+
+    var reports = new (string Category, string Title, string Description, string Action, string Icon)[]
+    {
+        ("student", "Student List", "Complete list of registered students.", "StudentList", "bi-people"),
+        ("student", "Eligible Student Report", "Students eligible for re-examination.", "EligibleStudents", "bi-clipboard-check"),
+        ("application", "Applications", "Re-exam applications, optionally filtered by status.", "Applications", "bi-file-earmark-text"),
+        ("examination", "Examination Timetable", "All scheduled exams with room and invigilator.", "Timetable", "bi-calendar-event"),
+        ("result", "Results", "Re-exam results, optionally filtered by publication status.", "Results", "bi-award"),
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-bar-graph"></i> Reports</h4>
+    <a asp-controller="Report" asp-action="Analytics" class="btn btn-outline-primary">
+        <i class="bi bi-graph-up"></i> Analytics
+    </a>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
+    @for (var i = 0; i < categories.Length; i++)
+    {
+        var (key, label) = categories[i];
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(i == 0 ? "active" : "")" id="tab-@key" data-bs-toggle="tab" data-bs-target="#pane-@key" type="button" role="tab">
+                @label
+            </button>
+        </li>
+    }
+</ul>
+
+<div class="tab-content">
+    @for (var i = 0; i < categories.Length; i++)
+    {
+        var (key, label) = categories[i];
+        var reportsInCategory = reports.Where(r => r.Category == key).ToList();
+
+        <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="pane-@key" role="tabpanel">
+            <div class="row g-3">
+                @if (key == "statistical")
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <i class="bi bi-graph-up text-primary" style="font-size: 1.6rem;"></i>
+                                <h5 class="mt-2">Analytics Dashboard</h5>
+                                <p class="text-muted small">Application status, pass/fail rate, grade distribution, most-repeated courses, students by program, and applications by academic year.</p>
+                                <a asp-controller="Report" asp-action="Analytics" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (reportsInCategory.Count == 0)
+                {
+                    <div class="col-12 text-muted text-center py-4">No reports in this category yet.</div>
+                }
+                @foreach (var report in reportsInCategory)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <i class="bi @report.Icon text-primary" style="font-size: 1.6rem;"></i>
+                                <h5 class="mt-2">@report.Title</h5>
+                                <p class="text-muted small">@report.Description</p>
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="Report" asp-action="@report.Action" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a asp-controller="Report" asp-action="@report.Action" asp-route-format="pdf" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                                    </a>
+                                    <a asp-controller="Report" asp-action="@report.Action" asp-route-format="excel" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-file-earmark-excel"></i> Excel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

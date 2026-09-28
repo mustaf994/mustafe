@@ -1,0 +1,65 @@
+@using ReExamManagementSystem.Domain.Enums
+@model AttendanceViewModel
+@{
+    ViewData["Title"] = "Examination Attendance";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0"><i class="bi bi-clipboard-check"></i> Attendance</h4>
+        <p class="text-muted mb-0">
+            <span class="badge text-bg-secondary">@Model.CourseCode</span> @Model.CourseName -
+            @Model.ExamDate.ToString("dd MMM yyyy")
+        </p>
+    </div>
+    <a asp-controller="ExamSchedule" asp-action="Index" class="btn btn-outline-secondary">Back to Schedule</a>
+</div>
+
+<form asp-controller="ExamAttendance" asp-action="Save" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="scheduleId" value="@Model.ScheduleId" />
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student Number</th>
+                        <th>Student Name</th>
+                        <th>Attendance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Students.Count == 0)
+                    {
+                        <tr><td colspan="3" class="text-center text-muted py-4">No students are registered for this exam.</td></tr>
+                    }
+                    @foreach (var student in Model.Students)
+                    {
+                        <tr>
+                            <td>@student.StudentNumber</td>
+                            <td>@student.StudentName</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="attendance[@student.StudentId]" id="present_@student.StudentId"
+                                           value="@((int)AttendanceStatus.Present)" autocomplete="off" checked="@(student.Status == AttendanceStatus.Present)" />
+                                    <label class="btn btn-outline-success btn-sm" for="present_@student.StudentId">Present</label>
+
+                                    <input type="radio" class="btn-check" name="attendance[@student.StudentId]" id="absent_@student.StudentId"
+                                           value="@((int)AttendanceStatus.Absent)" autocomplete="off" checked="@(student.Status == AttendanceStatus.Absent)" />
+                                    <label class="btn btn-outline-danger btn-sm" for="absent_@student.StudentId">Absent</label>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.Students.Count > 0)
+        {
+            <div class="card-footer text-end">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Attendance</button>
+            </div>
+        }
+    </div>
+</form>

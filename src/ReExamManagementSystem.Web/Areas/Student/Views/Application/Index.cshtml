@@ -1,0 +1,68 @@
+@model IReadOnlyList<MyApplicationViewModel>
+@{
+    ViewData["Title"] = "My Applications";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> My Re-Exam Applications</h4>
+    <a asp-action="Eligible" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Apply for Re-Exam</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Applied On</th>
+                    <th>Term</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">You have not submitted any re-exam applications yet.</td></tr>
+                }
+                @foreach (var app in Model)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-secondary">@app.CourseCode</span> @app.CourseName</td>
+                        <td>@app.ApplicationDate.ToString("dd MMM yyyy")</td>
+                        <td>@app.AcademicYearName - @app.SemesterName</td>
+                        <td>
+                            @{
+                                var badgeClass = app.Status switch
+                                {
+                                    ApplicationStatus.Pending => "text-bg-warning",
+                                    ApplicationStatus.Approved => "text-bg-success",
+                                    ApplicationStatus.Rejected => "text-bg-danger",
+                                    ApplicationStatus.Cancelled => "text-bg-secondary",
+                                    _ => "text-bg-primary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@app.Status</span>
+                            @if (app.Status == ApplicationStatus.Rejected && app.RejectionReason is not null)
+                            {
+                                <div class="small text-muted mt-1">@app.RejectionReason</div>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (app.Status == ApplicationStatus.Pending)
+                            {
+                                <form asp-action="Cancel" asp-route-id="@app.Id" method="post" class="d-inline"
+                                      onsubmit="return confirm('Cancel this application?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

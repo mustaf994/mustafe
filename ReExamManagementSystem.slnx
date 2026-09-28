@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ReExamManagementSystem.Application/ReExamManagementSystem.Application.csproj" />
+    <Project Path="src/ReExamManagementSystem.Domain/ReExamManagementSystem.Domain.csproj" />
+    <Project Path="src/ReExamManagementSystem.Infrastructure/ReExamManagementSystem.Infrastructure.csproj" />
+    <Project Path="src/ReExamManagementSystem.Web/ReExamManagementSystem.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ReExamManagementSystem.UnitTests/ReExamManagementSystem.UnitTests.csproj" />
+  </Folder>
+</Solution>

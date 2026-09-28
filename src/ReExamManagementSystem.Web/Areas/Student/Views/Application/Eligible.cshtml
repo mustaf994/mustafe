@@ -1,0 +1,56 @@
+@model IReadOnlyList<EligibleCourseViewModel>
+@{
+    ViewData["Title"] = "Eligible Courses";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-clipboard-check"></i> Courses You're Eligible to Retake</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary">My Applications</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Previous Mark</th>
+                    <th>Grade</th>
+                    <th>Reason</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">You have no eligible courses at this time.</td></tr>
+                }
+                @foreach (var course in Model)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-secondary">@course.CourseCode</span> @course.CourseName</td>
+                        <td>@course.PreviousMark</td>
+                        <td>@course.PreviousGrade</td>
+                        <td class="small text-muted">@course.Reason</td>
+                        <td class="text-end">
+                            @if (course.IsOpenForReExam)
+                            {
+                                <form asp-action="Submit" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="eligibilityId" value="@course.EligibilityId" />
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-send"></i> Apply
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Not open yet</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

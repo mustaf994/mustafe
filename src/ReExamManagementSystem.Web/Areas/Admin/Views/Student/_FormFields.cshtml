@@ -1,0 +1,136 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using ReExamManagementSystem.Domain.Enums
+@model StudentFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<input type="hidden" asp-for="Id" />
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="StudentNumber" class="form-label"></label>
+        <input asp-for="StudentNumber" class="form-control" autofocus />
+        <span asp-validation-for="StudentNumber" class="text-danger"></span>
+    </div>
+    <div class="col-md-5 mb-3">
+        <label asp-for="FullName" class="form-label"></label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label asp-for="Gender" class="form-label"></label>
+        <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()"></select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="DateOfBirth" class="form-label"></label>
+        <input asp-for="DateOfBirth" class="form-control" value="@Model.DateOfBirth.ToString("yyyy-MM-dd")" />
+        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="PhoneNumber" class="form-label"></label>
+        <input asp-for="PhoneNumber" class="form-control" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+        @if (Model.Id != 0)
+        {
+            <div class="form-text">Changing this does not currently change the student's sign-in email.</div>
+        }
+    </div>
+</div>
+
+<hr />
+<h6 class="text-muted">Academic Placement</h6>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="DepartmentId" class="form-label"></label>
+        <select asp-for="DepartmentId" id="DepartmentId" class="form-select" asp-items="@(new SelectList(Model.DepartmentOptions, "Id", "Name"))">
+            <option value="">-- Select Department --</option>
+        </select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="ProgramId" class="form-label"></label>
+        <select asp-for="ProgramId" id="ProgramId" class="form-select">
+            <option value="">-- Select Department First --</option>
+            @foreach (var program in Model.ProgramOptions)
+            {
+                <option value="@program.Id" data-department-id="@program.DepartmentId" selected="@(program.Id == Model.ProgramId ? "selected" : null)">@program.Name</option>
+            }
+        </select>
+        <span asp-validation-for="ProgramId" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <label asp-for="Level" class="form-label"></label>
+        <input asp-for="Level" type="number" min="1" max="8" class="form-control" />
+        <span asp-validation-for="Level" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="AcademicYearId" class="form-label"></label>
+        <select asp-for="AcademicYearId" id="AcademicYearId" class="form-select" asp-items="@(new SelectList(Model.AcademicYearOptions, "Id", "Name"))">
+            <option value="">-- Select Academic Year --</option>
+        </select>
+        <span asp-validation-for="AcademicYearId" class="text-danger"></span>
+    </div>
+    <div class="col-md-5 mb-3">
+        <label asp-for="SemesterId" class="form-label"></label>
+        <select asp-for="SemesterId" id="SemesterId" class="form-select">
+            <option value="">-- Select Academic Year First --</option>
+            @foreach (var semester in Model.SemesterOptions)
+            {
+                <option value="@semester.Id" data-academic-year-id="@semester.AcademicYearId" selected="@(semester.Id == Model.SemesterId ? "selected" : null)">@semester.Name</option>
+            }
+        </select>
+        <span asp-validation-for="SemesterId" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="EnrollmentDate" class="form-label"></label>
+        <input asp-for="EnrollmentDate" class="form-control" value="@Model.EnrollmentDate.ToString("yyyy-MM-dd")" />
+        <span asp-validation-for="EnrollmentDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<StudentStatus>()"></select>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function filterByParent(selectId, parentSelectId, dataAttr) {
+            var select = document.getElementById(selectId);
+            var parentSelect = document.getElementById(parentSelectId);
+            if (!select || !parentSelect) return;
+
+            function apply() {
+                var parentValue = parentSelect.value;
+                var currentValue = select.value;
+                var hasMatch = false;
+                Array.from(select.options).forEach(function (opt) {
+                    if (!opt.value) { opt.hidden = false; return; }
+                    var matches = opt.getAttribute(dataAttr) === parentValue;
+                    opt.hidden = !matches;
+                    if (matches && opt.value === currentValue) hasMatch = true;
+                });
+                if (!hasMatch) select.value = '';
+            }
+
+            parentSelect.addEventListener('change', apply);
+            apply();
+        }
+
+        filterByParent('ProgramId', 'DepartmentId', 'data-department-id');
+        filterByParent('SemesterId', 'AcademicYearId', 'data-academic-year-id');
+    })();
+</script>

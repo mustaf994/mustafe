@@ -1,0 +1,19 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = Model.StatusCode is not null ? $"Error {Model.StatusCode}" : "Error";
+}
+
+<div class="text-center mt-5">
+    <i class="bi bi-exclamation-octagon text-danger" style="font-size: 3.5rem;"></i>
+    <h2 class="mt-3">@(Model.StatusCode is not null ? $"Error {Model.StatusCode}" : "Something went wrong")</h2>
+    <p class="text-muted">@Model.Message</p>
+
+    @if (Model.ShowRequestId)
+    {
+        <p class="text-muted small">Request ID: <code>@Model.RequestId</code></p>
+    }
+
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">
+        <i class="bi bi-house"></i> Go home
+    </a>
+</div>

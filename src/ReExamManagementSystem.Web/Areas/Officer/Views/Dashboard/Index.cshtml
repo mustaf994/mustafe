@@ -1,0 +1,109 @@
+@using System.Text.Json
+@model OfficerDashboardViewModel
+@{
+    ViewData["Title"] = "Examination Officer Dashboard";
+
+    var cards = new[]
+    {
+        ("Eligible Students", Model.EligibleStudents, "bi-clipboard-check", "bg-soft-yellow", Url.Action("Index", "Eligibility")),
+        ("Pending Applications", Model.PendingApplications, "bi-hourglass-split", "bg-soft-orange", Url.Action("Index", "Application", new { status = "Pending" })),
+        ("Approved Applications", Model.ApprovedApplications, "bi-check-circle", "bg-soft-green", Url.Action("Index", "Application", new { status = "Approved" })),
+        ("Rejected Applications", Model.RejectedApplications, "bi-x-circle", "bg-soft-red", Url.Action("Index", "Application", new { status = "Rejected" })),
+        ("Upcoming Exams", Model.UpcomingExams, "bi-calendar-event", "bg-soft-blue", Url.Action("Index", "ExamSchedule")),
+        ("Completed Exams", Model.CompletedExams, "bi-calendar-check", "bg-soft-teal", Url.Action("Index", "ExamSchedule")),
+        ("Pending Results", Model.PendingResults, "bi-hourglass-split", "bg-soft-purple", Url.Action("Review", "Result", new { published = false })),
+        ("Published Results", Model.PublishedResults, "bi-award", "bg-soft-green", Url.Action("Review", "Result", new { published = true })),
+    };
+}
+
+<div class="mb-4">
+    <h4 class="mb-0">Dashboard</h4>
+    <p class="text-muted mb-0">Welcome back, @User.Identity?.Name - Examination Officer</p>
+</div>
+
+<div class="row g-3 mb-4">
+    @foreach (var (title, value, icon, colorClass, url) in cards)
+    {
+        <div class="col-6 col-md-4 col-xl-3">
+            <a href="@url" class="card stat-card stat-card-link h-100 text-decoration-none text-reset">
+                <div class="card-body d-flex align-items-center">
+                    <div class="stat-icon @colorClass me-3">
+                        <i class="bi @icon"></i>
+                    </div>
+                    <div>
+                        <div class="fs-4 fw-bold">@value</div>
+                        <div class="text-muted small">@title</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Application Status</div>
+            <div class="card-body"><canvas id="appStatusChart"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                Recent Applications
+                <a asp-controller="Application" asp-action="Index" class="small">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentApplications.Count == 0)
+                        {
+                            <tr><td colspan="3" class="text-center text-muted py-4">No applications yet.</td></tr>
+                        }
+                        @foreach (var app in Model.RecentApplications)
+                        {
+                            var pillClass = app.Status switch
+                            {
+                                ApplicationStatus.Pending => "badge-soft-warning",
+                                ApplicationStatus.Approved => "badge-soft-success",
+                                ApplicationStatus.Rejected => "badge-soft-danger",
+                                ApplicationStatus.Completed => "badge-soft-info",
+                                _ => "badge-soft-secondary"
+                            };
+                            <tr>
+                                <td>@app.StudentName <div class="text-muted small">@app.StudentNumber</div></td>
+                                <td><span class="badge badge-soft-secondary">@app.CourseCode</span></td>
+                                <td><span class="badge @pillClass">@app.Status</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/chart.js/dist/chart.umd.min.js"></script>
+    <script>
+        const appStatus = @Html.Raw(JsonSerializer.Serialize(Model.ApplicationsByStatus));
+        new Chart(document.getElementById('appStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: appStatus.map(p => p.Label),
+                datasets: [{
+                    data: appStatus.map(p => p.Value),
+                    backgroundColor: ['#ffc107', '#198754', '#dc3545', '#6c757d', '#0dcaf0']
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+}

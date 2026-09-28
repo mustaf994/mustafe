@@ -1,0 +1,252 @@
+@* Role-based navigation. Each phase adds its own links here as the matching
+   controllers/actions land, so the sidebar never points at a dead route. *@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    Func<string, string?, string> navClass = (controller, action) =>
+    {
+        var controllerMatches = currentController.Equals(controller, StringComparison.OrdinalIgnoreCase);
+        var actionMatches = action is null || currentAction.Equals(action, StringComparison.OrdinalIgnoreCase);
+        return controllerMatches && actionMatches ? "nav-link active" : "nav-link";
+    };
+}
+
+<div class="d-flex flex-column flex-shrink-0 p-3 sidebar h-100">
+    <a href="/" class="brand d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+        <i class="bi bi-mortarboard-fill fs-4 me-2"></i>
+        <span class="fs-5 fw-semibold">Re-Exam MS</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        @if (User.IsInRole(Roles.Administrator))
+        {
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@navClass("Dashboard", null)">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="User" asp-action="Index" class="@navClass("User", null)">
+                    <i class="bi bi-person-badge me-2"></i> Staff Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Student" asp-action="Index" class="@navClass("Student", null)">
+                    <i class="bi bi-people me-2"></i> Students
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Faculty" asp-action="Index" class="@navClass("Faculty", null)">
+                    <i class="bi bi-bank me-2"></i> Faculties
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Department" asp-action="Index" class="@navClass("Department", null)">
+                    <i class="bi bi-building me-2"></i> Departments
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Program" asp-action="Index" class="@navClass("Program", null)">
+                    <i class="bi bi-mortarboard me-2"></i> Programs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Course" asp-action="Index" class="@navClass("Course", null)">
+                    <i class="bi bi-journal-bookmark me-2"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="AcademicYear" asp-action="Index" class="@navClass("AcademicYear", null)">
+                    <i class="bi bi-calendar3 me-2"></i> Academic Years
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Semester" asp-action="Index" class="@navClass("Semester", null)">
+                    <i class="bi bi-calendar2-week me-2"></i> Semesters
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="GradingRule" asp-action="Index" class="@navClass("GradingRule", null)">
+                    <i class="bi bi-sliders me-2"></i> Grading Rules
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="ExamRoom" asp-action="Index" class="@navClass("ExamRoom", null)">
+                    <i class="bi bi-door-open me-2"></i> Exam Rooms
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Invigilator" asp-action="Index" class="@navClass("Invigilator", null)">
+                    <i class="bi bi-person-video3 me-2"></i> Invigilators
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="" asp-controller="Report" asp-action="Index" class="@navClass("Report", "Index")">
+                    <i class="bi bi-file-earmark-bar-graph me-2"></i> Reports
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="" asp-controller="Report" asp-action="Analytics" class="@navClass("Report", "Analytics")">
+                    <i class="bi bi-graph-up me-2"></i> Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="SystemSetting" asp-action="Index" class="@navClass("SystemSetting", null)">
+                    <i class="bi bi-gear me-2"></i> System Settings
+                </a>
+            </li>
+        }
+        @if (User.IsInRole(Roles.ExaminationOfficer))
+        {
+            <li class="nav-item">
+                <a asp-area="Officer" asp-controller="Dashboard" asp-action="Index" class="@navClass("Dashboard", null)">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Officer" asp-controller="Eligibility" asp-action="Index" class="@navClass("Eligibility", null)">
+                    <i class="bi bi-clipboard-check me-2"></i> Eligible Students
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Officer" asp-controller="Application" asp-action="Index" class="@navClass("Application", null)">
+                    <i class="bi bi-file-earmark-text me-2"></i> Applications
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Officer" asp-controller="ReExamSubject" asp-action="Index" class="@navClass("ReExamSubject", null)">
+                    <i class="bi bi-journal-check me-2"></i> Re-Exam Subjects
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Officer" asp-controller="ExamSchedule" asp-action="Index" class="@navClass("ExamSchedule", null)">
+                    <i class="bi bi-calendar-event me-2"></i> Exam Schedule
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Officer" asp-controller="Result" asp-action="Index" class="@navClass("Result", null)">
+                    <i class="bi bi-award me-2"></i> Results
+                </a>
+            </li>
+            <li><hr class="text-white-50"></li>
+            @* The Examination Officer gets every Administrator capability except
+               Staff Users (account management stays Administrator-only). *@
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Student" asp-action="Index" class="@navClass("Student", null)">
+                    <i class="bi bi-people me-2"></i> Students
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Faculty" asp-action="Index" class="@navClass("Faculty", null)">
+                    <i class="bi bi-bank me-2"></i> Faculties
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Department" asp-action="Index" class="@navClass("Department", null)">
+                    <i class="bi bi-building me-2"></i> Departments
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Program" asp-action="Index" class="@navClass("Program", null)">
+                    <i class="bi bi-mortarboard me-2"></i> Programs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Course" asp-action="Index" class="@navClass("Course", null)">
+                    <i class="bi bi-journal-bookmark me-2"></i> Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="AcademicYear" asp-action="Index" class="@navClass("AcademicYear", null)">
+                    <i class="bi bi-calendar3 me-2"></i> Academic Years
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Semester" asp-action="Index" class="@navClass("Semester", null)">
+                    <i class="bi bi-calendar2-week me-2"></i> Semesters
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="GradingRule" asp-action="Index" class="@navClass("GradingRule", null)">
+                    <i class="bi bi-sliders me-2"></i> Grading Rules
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="ExamRoom" asp-action="Index" class="@navClass("ExamRoom", null)">
+                    <i class="bi bi-door-open me-2"></i> Exam Rooms
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="Invigilator" asp-action="Index" class="@navClass("Invigilator", null)">
+                    <i class="bi bi-person-video3 me-2"></i> Invigilators
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Admin" asp-controller="SystemSetting" asp-action="Index" class="@navClass("SystemSetting", null)">
+                    <i class="bi bi-gear me-2"></i> System Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="" asp-controller="Report" asp-action="Index" class="@navClass("Report", "Index")">
+                    <i class="bi bi-file-earmark-bar-graph me-2"></i> Reports
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="" asp-controller="Report" asp-action="Analytics" class="@navClass("Report", "Analytics")">
+                    <i class="bi bi-graph-up me-2"></i> Analytics
+                </a>
+            </li>
+        }
+        @if (User.IsInRole(Roles.Student))
+        {
+            <li class="nav-item">
+                <a asp-area="Student" asp-controller="Dashboard" asp-action="Index" class="@navClass("Dashboard", null)">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Student" asp-controller="Application" asp-action="Index" class="@navClass("Application", "Index")">
+                    <i class="bi bi-file-earmark-text me-2"></i> My Applications
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Student" asp-controller="Application" asp-action="Eligible" class="@navClass("Application", "Eligible")">
+                    <i class="bi bi-clipboard-check me-2"></i> Eligible Courses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Student" asp-controller="ExamSchedule" asp-action="Index" class="@navClass("ExamSchedule", null)">
+                    <i class="bi bi-calendar-event me-2"></i> Exam Schedule
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Student" asp-controller="Result" asp-action="Index" class="@navClass("Result", null)">
+                    <i class="bi bi-award me-2"></i> My Results
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-area="Student" asp-controller="Profile" asp-action="Index" class="@navClass("Profile", null)">
+                    <i class="bi bi-person-badge me-2"></i> My Profile
+                </a>
+            </li>
+        }
+        <li>
+            <a asp-area="" asp-controller="Notification" asp-action="Index" class="@navClass("Notification", null)">
+                <i class="bi bi-bell me-2"></i> Notifications
+            </a>
+        </li>
+        <li>
+            <a asp-area="" asp-controller="Account" asp-action="Manage" class="@navClass("Account", "Manage")">
+                <i class="bi bi-person-circle me-2"></i> Account Settings
+            </a>
+        </li>
+    </ul>
+    <hr>
+    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-light w-100">
+            <i class="bi bi-box-arrow-right me-2"></i> Logout
+        </button>
+    </form>
+</div>

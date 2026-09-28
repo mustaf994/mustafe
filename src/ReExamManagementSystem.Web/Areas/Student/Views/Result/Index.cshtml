@@ -1,0 +1,49 @@
+@model IReadOnlyList<PublishedResultViewModel>
+@{
+    ViewData["Title"] = "My Results";
+}
+
+<h4 class="mb-4"><i class="bi bi-award"></i> My Re-Exam Results</h4>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Original Mark</th>
+                    <th>Re-Exam Mark</th>
+                    <th>Final Mark</th>
+                    <th>Grade</th>
+                    <th>Grade Point</th>
+                    <th>Status</th>
+                    <th>Published</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">No published results yet.</td></tr>
+                }
+                @foreach (var result in Model)
+                {
+                    <tr>
+                        <td><span class="badge text-bg-secondary">@result.CourseCode</span> @result.CourseName</td>
+                        <td>@result.OriginalMark</td>
+                        <td>@result.ReExamMark</td>
+                        <td class="fw-semibold">@result.FinalMark</td>
+                        <td>@result.Grade</td>
+                        <td>@result.GradePoint</td>
+                        <td>
+                            @{
+                                var badgeClass = result.Status == ReExamManagementSystem.Domain.Enums.ResultStatus.Pass ? "text-bg-success" : "text-bg-danger";
+                            }
+                            <span class="badge @badgeClass">@result.Status</span>
+                        </td>
+                        <td>@result.PublishedAt?.ToString("dd MMM yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

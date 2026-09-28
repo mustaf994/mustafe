@@ -1,0 +1,37 @@
+@using ReExamManagementSystem.Application.ViewModels.Shared
+@model IReadOnlyList<NotificationViewModel>
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-bell"></i> Notifications</h4>
+    @if (Model.Any(n => !n.IsRead))
+    {
+        <form asp-action="MarkAllRead" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Mark all as read</button>
+        </form>
+    }
+</div>
+
+<div class="card shadow-sm">
+    <div class="list-group list-group-flush">
+        @if (Model.Count == 0)
+        {
+            <div class="text-center text-muted py-5">You have no notifications.</div>
+        }
+        @foreach (var notification in Model)
+        {
+            <a class="list-group-item list-group-item-action @(notification.IsRead ? "" : "bg-light")"
+               href="@Url.Action("Open", new { id = notification.Id })">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">@notification.Title</span>
+                    <small class="text-muted">@notification.CreatedAt.ToString("dd MMM yyyy, HH:mm")</small>
+                </div>
+                <div class="text-muted">@notification.Message</div>
+            </a>
+        }
+    </div>
+</div>
