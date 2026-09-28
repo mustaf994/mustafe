@@ -181,9 +181,33 @@ static string ConvertDatabaseUrlToNpgsqlConnectionString(string databaseUrl)
     var database = uri.AbsolutePath.TrimStart('/');
     var username = Uri.UnescapeDataString(userInfo[0]);
     var password = Uri.UnescapeDataString(userInfo[1]);
+    var host = ResolveRenderDatabaseHost(uri.Host);
 
-    return $"Host={uri.Host};Port={port};Database={database};Username={username};Password={password};" +
+    return $"Host={host};Port={port};Database={database};Username={username};Password={password};" +
         "SSL Mode=Prefer;Trust Server Certificate=true";
+}
+
+// Render's internal database hostname (e.g. "dpg-xxxx-a", no domain) only resolves
+// for services in the same region as the database. When it doesn't resolve, fall
+// back to the external hostname - Render's Postgres edge routes by the database id,
+// so any regional external domain reaches it (over SSL, which "Prefer" negotiates).
+static string ResolveRenderDatabaseHost(string host)
+{
+    if (!host.StartsWith("dpg-", StringComparison.Ordinal) || host.Contains('.'))
+    {
+        return host;
+    }
+
+    try
+    {
+        System.Net.Dns.GetHostAddresses(host);
+        return host;
+    }
+    catch (System.Net.Sockets.SocketException)
+    {
+        var region = Environment.GetEnvironmentVariable("RENDER_DATABASE_REGION") ?? "oregon";
+        return $"{host}.{region}-postgres.render.com";
+    }
 }
 
 static string Left(string value, int count) => value.Length <= count ? value : value[..count];
