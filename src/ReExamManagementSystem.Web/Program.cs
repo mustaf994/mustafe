@@ -134,8 +134,29 @@ app.Run();
 // "Trust Server Certificate=true" rather than validating against a CA.
 static string ConvertDatabaseUrlToNpgsqlConnectionString(string databaseUrl)
 {
-    var uri = new Uri(databaseUrl);
+    Uri uri;
+    try
+    {
+        uri = new Uri(databaseUrl.Trim());
+    }
+    catch (UriFormatException ex)
+    {
+        throw new InvalidOperationException(
+            $"DATABASE_URL isn't a valid URI (expected postgres://user:password@host:port/database). " +
+            $"Got {databaseUrl.Length} character(s), starting with '{Left(databaseUrl, 12)}'.", ex);
+    }
+
+    // An opaque/malformed URI (e.g. missing the "//" after the scheme) parses
+    // without throwing but leaves UserInfo empty, which is where this used to
+    // crash with an unhelpful IndexOutOfRangeException instead of this message.
     var userInfo = uri.UserInfo.Split(':', 2);
+    if (userInfo.Length != 2 || userInfo[0].Length == 0)
+    {
+        throw new InvalidOperationException(
+            $"DATABASE_URL is missing 'user:password@' credentials (expected postgres://user:password@host:port/database). " +
+            $"Parsed scheme='{uri.Scheme}', host='{uri.Host}'.");
+    }
+
     var port = uri.Port > 0 ? uri.Port : 5432;
     var database = uri.AbsolutePath.TrimStart('/');
     var username = Uri.UnescapeDataString(userInfo[0]);
@@ -144,3 +165,5 @@ static string ConvertDatabaseUrlToNpgsqlConnectionString(string databaseUrl)
     return $"Host={uri.Host};Port={port};Database={database};Username={username};Password={password};" +
         "SSL Mode=Require;Trust Server Certificate=true";
 }
+
+static string Left(string value, int count) => value.Length <= count ? value : value[..count];
