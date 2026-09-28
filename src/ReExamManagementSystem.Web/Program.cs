@@ -83,6 +83,9 @@ using (var startupScope = app.Services.CreateScope())
     catch (Exception ex)
     {
         logger.LogError(ex, "An error occurred while applying migrations or seeding the database.");
+        // The stack trace above pushes the actual cause off-screen in hosted log
+        // viewers, so repeat it as the last line before the process exits.
+        Console.Error.WriteLine($"DATABASE STARTUP FAILED: {ex.GetBaseException().Message}");
         throw;
     }
 }
