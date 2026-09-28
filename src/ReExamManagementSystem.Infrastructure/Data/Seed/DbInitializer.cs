@@ -51,12 +51,19 @@ public static class DbInitializer
         var admin = await SeedUserAsync(userManager, "admin@reexam.edu", "System Administrator", Roles.Administrator);
         var officer = await SeedUserAsync(userManager, "officer@reexam.edu", "Grace Mensah", Roles.ExaminationOfficer);
 
-        if (await context.Faculties.AnyAsync())
+        // Academic years are seeded after grading rules and the academic structure,
+        // so a database that has them finished a full seed. (An earlier failed run
+        // could leave faculties behind without years - that case falls through and
+        // the stages below reuse what's already there.)
+        if (await context.AcademicYears.AnyAsync())
         {
             await SeedAdditionalStudentIfMissingAsync(context, userManager);
             await SeedExampleResultForStudentIfMissingAsync(context, "student@reexam.edu", officer.Id);
             return; // domain data already seeded
         }
+
+        // All-or-nothing, so a failure part-way through can't leave half-seeded data.
+        await using var transaction = await context.Database.BeginTransactionAsync();
 
         var gradingRules = await SeedGradingRulesAsync(context);
         var (departments, programs) = await SeedAcademicStructureAsync(context);
@@ -67,6 +74,8 @@ public static class DbInitializer
         await SeedExamInfrastructureAsync(context, departments);
         await SeedSystemSettingsAsync(context);
         await SeedExampleResultForStudentIfMissingAsync(context, "student@reexam.edu", officer.Id);
+
+        await transaction.CommitAsync();
     }
 
     private sealed record ExampleCourseScenario(string CourseCode, decimal OriginalMark, bool CreateApplication, bool Approve, bool ScheduleExam, bool PublishResult, decimal? ReExamMark = null);
@@ -362,6 +371,12 @@ public static class DbInitializer
 
     private static async Task<List<GradingRule>> SeedGradingRulesAsync(ApplicationDbContext context)
     {
+        var existing = await context.GradingRules.ToListAsync();
+        if (existing.Count > 0)
+        {
+            return existing;
+        }
+
         var rules = new List<GradingRule>
         {
             new() { MinMark = 90, MaxMark = 100, Grade = "A", GradePoint = 4.00m, IsPassing = true, Description = "Excellent" },
@@ -385,6 +400,13 @@ public static class DbInitializer
 
     private static async Task<(Dictionary<string, Department> departments, Dictionary<string, AcademicProgram> programs)> SeedAcademicStructureAsync(ApplicationDbContext context)
     {
+        if (await context.Faculties.AnyAsync())
+        {
+            return (
+                await context.Departments.ToDictionaryAsync(d => d.Code),
+                await context.AcademicPrograms.ToDictionaryAsync(p => p.Code));
+        }
+
         var scienceFaculty = new Faculty { Name = "Faculty of Science", Code = "SCI" };
         var engineeringFaculty = new Faculty { Name = "Faculty of Engineering", Code = "ENG" };
         context.Faculties.AddRange(scienceFaculty, engineeringFaculty);
